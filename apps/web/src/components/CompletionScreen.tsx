@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { X, CheckCircle2, Star } from 'lucide-react';
+import { UserButton } from "@clerk/react";
 
 interface CompletionScreenProps {
   onClose: () => void;
@@ -13,12 +14,15 @@ export default function CompletionScreen({ onClose }: CompletionScreenProps) {
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
         <h1 className="text-xl font-bold font-display tracking-tight text-[#FF2D55]">Coastal Startup Fest</h1>
-        <button 
-          onClick={onClose}
-          className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-        >
-          <X className="w-6 h-6 text-[#FF2D55]" />
-        </button>
+        <div className="flex items-center gap-3">
+          <UserButton />
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+          >
+            <X className="w-6 h-6 text-[#FF2D55]" />
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto px-8 pb-12 flex flex-col items-center">
@@ -27,9 +31,9 @@ export default function CompletionScreen({ onClose }: CompletionScreenProps) {
           {/* Background Decorative Frame */}
           <div className="absolute inset-0 border border-slate-200 rounded-3xl transform rotate-3" />
           <div className="absolute inset-0 border border-slate-200 rounded-3xl transform -rotate-3" />
-          
+
           {/* Main Visual (Red/Orange Card) */}
-          <motion.div 
+          <motion.div
             initial={{ scale: 0.8, opacity: 0, rotate: 10 }}
             animate={{ scale: 1, opacity: 1, rotate: 10 }}
             className="relative w-[70%] h-[70%] bg-gradient-to-br from-[#FF2D55] to-[#FF6321] rounded-2xl shadow-2xl shadow-red-500/30 overflow-hidden flex items-center justify-center -translate-y-4 translate-x-4"
@@ -41,7 +45,7 @@ export default function CompletionScreen({ onClose }: CompletionScreenProps) {
           </motion.div>
 
           {/* Submission Success Card Overlay */}
-          <motion.div 
+          <motion.div
             initial={{ x: -40, y: 40, opacity: 0 }}
             animate={{ x: -20, y: 20, opacity: 1 }}
             transition={{ delay: 0.3 }}

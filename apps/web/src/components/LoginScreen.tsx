@@ -11,7 +11,7 @@ export default function LoginScreen({ onStart }: LoginScreenProps) {
       <div className="fixed inset-0 pointer-events-none">
         {/* Subtle Dot Grid */}
         <div className="absolute inset-0 opacity-[0.12] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px] md:[background-size:20px_20px]"></div>
-        
+
         {/* Topographic Background Lines */}
         <svg width="100%" height="100%" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" className="opacity-40 w-full h-full">
           <path d="M-100,200 C100,100 300,400 500,200 S800,0 1100,200" className="topographic-line" />
@@ -25,48 +25,48 @@ export default function LoginScreen({ onStart }: LoginScreenProps) {
 
       <div className="h-full min-h-full flex flex-col items-center justify-between p-6 sm:p-8 md:p-12 lg:p-16 relative z-10">
         <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl mx-auto py-4 md:py-0">
-        {/* Logo Section */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          className="flex flex-col items-center mb-6 sm:mb-8 md:mb-12 text-center"
-        >
-          <div className="flex flex-col items-center gap-3 sm:gap-4 md:gap-6">
-            {/* Logo Placeholder */}
-            <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl mb-1 sm:mb-2 border-2 border-white/20">
-              <span className="text-[#FF2D55] font-black text-sm sm:text-base md:text-lg tracking-tighter font-display">LOGO</span>
+          {/* Logo Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6 }}
+            className="flex flex-col items-center mb-6 sm:mb-8 md:mb-12 text-center"
+          >
+            <div className="flex flex-col items-center gap-3 sm:gap-4 md:gap-6">
+              {/* Logo Placeholder */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl mb-1 sm:mb-2 border-2 border-white/20">
+                <span className="text-[#FF2D55] font-black text-sm sm:text-base md:text-lg tracking-tighter font-display">LOGO</span>
+              </div>
+              <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold font-display tracking-tight leading-tight text-center">
+                Coastal <br className="sm:hidden" />Startup Fest
+              </h1>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold font-display tracking-tight leading-tight text-center">
-              Coastal <br className="sm:hidden" />Startup Fest
-            </h1>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Tagline */}
-        <motion.p 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="text-lg sm:text-xl md:text-3xl lg:text-4xl font-medium text-center max-w-[280px] sm:max-w-md md:max-w-2xl lg:max-w-5xl leading-tight px-4 mb-8 sm:mb-10 md:mb-12 opacity-90 mx-auto font-sans tracking-tight"
-        >
-          Empowering the next generation of coastal entrepreneurs!
-        </motion.p>
-      </div>
+          {/* Tagline */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="text-lg sm:text-xl md:text-3xl lg:text-4xl font-medium text-center max-w-[280px] sm:max-w-md md:max-w-2xl lg:max-w-5xl leading-tight px-4 mb-8 sm:mb-10 md:mb-12 opacity-90 mx-auto font-sans tracking-tight"
+          >
+            Empowering the next generation of coastal entrepreneurs!
+          </motion.p>
+        </div>
 
         {/* Action Section */}
         <div className="w-full max-w-[280px] sm:max-w-sm md:max-w-md lg:max-w-lg flex flex-col items-center px-4 py-4 md:py-0 md:pb-8 mx-auto">
-        <motion.button
-          onClick={onStart}
-          whileHover={{ scale: 1.02, backgroundColor: "#f8f8f8" }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full bg-white text-[#FF2D55] font-bold py-4 sm:py-5 md:py-6 rounded-full text-base sm:text-lg md:text-xl lg:text-2xl shadow-xl uppercase tracking-[0.2em] mb-6 sm:mb-8 md:mb-12 transition-all font-display"
-        >
-          Get Started
-        </motion.button>
-          
+          <motion.button
+            onClick={onStart}
+            whileHover={{ scale: 1.02, backgroundColor: "#f8f8f8" }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full bg-white text-[#FF2D55] font-bold py-4 sm:py-5 md:py-6 rounded-full text-base sm:text-lg md:text-xl lg:text-2xl shadow-xl uppercase tracking-[0.2em] mb-6 sm:mb-8 md:mb-12 transition-all font-display"
+          >
+            Get Started
+          </motion.button>
+
           {/* Powered By Section */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
@@ -109,5 +109,3 @@ export default function LoginScreen({ onStart }: LoginScreenProps) {
     </div>
   );
 }
-
-

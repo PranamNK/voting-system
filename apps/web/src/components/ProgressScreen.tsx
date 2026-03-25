@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
-import { UserCircle, QrCode, CheckCircle2, Lock, Vote, BarChart3, User, ChevronLeft } from 'lucide-react';
+import { QrCode, CheckCircle2, Lock, Vote, BarChart3, User, ChevronLeft } from 'lucide-react';
+import { UserButton } from "@clerk/react";
 
 interface ProgressScreenProps {
   onBackToVote?: () => void;
@@ -10,13 +11,13 @@ interface ProgressScreenProps {
   totalCount?: number;
 }
 
-export default function ProgressScreen({ 
-  onBackToVote, 
-  onProfile, 
-  onScanNext, 
-  unlockedStalls = [], 
-  ratings = {}, 
-  totalCount = 5 
+export default function ProgressScreen({
+  onBackToVote,
+  onProfile,
+  onScanNext,
+  unlockedStalls = [],
+  ratings = {},
+  totalCount = 5
 }: ProgressScreenProps) {
   const ratedCount = Object.keys(ratings).length;
   const progressPercentage = Math.round((ratedCount / totalCount) * 100);
@@ -26,7 +27,7 @@ export default function ProgressScreen({
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={onBackToVote}
             className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors"
           >
@@ -34,8 +35,8 @@ export default function ProgressScreen({
           </button>
           <h1 className="text-xl font-bold font-display tracking-tight text-[#FF2D55]">Coastal Startup Fest</h1>
         </div>
-        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden">
-          <UserCircle className="w-8 h-8 text-slate-400" />
+        <div className="flex items-center justify-center">
+          <UserButton />
         </div>
       </header>
 
@@ -46,7 +47,7 @@ export default function ProgressScreen({
           <h2 className="text-4xl font-bold font-display text-slate-900 leading-tight mb-6">You're making progress!</h2>
 
           {/* Progress Summary Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-100 mb-6"
@@ -64,7 +65,7 @@ export default function ProgressScreen({
               </div>
             </div>
             <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
-              <motion.div 
+              <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercentage}%` }}
                 className="h-full bg-gradient-to-r from-[#FF2D55] to-[#FF6321]"
@@ -108,7 +109,7 @@ export default function ProgressScreen({
               const stallId = stallNumber.toString();
               const isUnlocked = unlockedStalls.includes(stallId);
               const isRated = ratings[stallId] !== undefined;
-              
+
               const status = isRated ? 'rated' : (isUnlocked ? 'pending' : 'locked');
               const displayId = String(stallNumber).padStart(2, '0');
 
@@ -120,14 +121,14 @@ export default function ProgressScreen({
                   transition={{ delay: i * 0.05 }}
                   className={`
                     p-4 rounded-2xl flex items-center justify-between border transition-all
-                    ${status === 'locked' ? 'bg-slate-50 border-transparent opacity-60' : 
+                    ${status === 'locked' ? 'bg-slate-50 border-transparent opacity-60' :
                       status === 'pending' ? 'bg-white border-[#FF2D55] shadow-md' : 'bg-white border-slate-100 shadow-sm'}
                   `}
                 >
                   <div className="flex items-center gap-4">
                     <div className={`
                       w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm
-                      ${status === 'rated' ? 'bg-emerald-50 text-emerald-500' : 
+                      ${status === 'rated' ? 'bg-emerald-50 text-emerald-500' :
                         status === 'pending' ? 'bg-[#FF2D55] text-white' : 'bg-slate-200 text-slate-400'}
                     `}>
                       {displayId}
@@ -168,7 +169,7 @@ export default function ProgressScreen({
 
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-8 py-4 flex items-center justify-between z-40">
-        <button 
+        <button
           onClick={onBackToVote}
           className="flex flex-col items-center gap-1 text-slate-300 hover:text-slate-400 transition-colors"
         >
@@ -179,7 +180,7 @@ export default function ProgressScreen({
           <BarChart3 className="w-6 h-6" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Progress</span>
         </button>
-        <button 
+        <button
           onClick={onProfile}
           className="flex flex-col items-center gap-1 text-slate-300 hover:text-slate-400 transition-colors"
         >

@@ -4,17 +4,24 @@
  */
 
 import { useState, useEffect } from "react";
+import { useAuth, useUser } from "@clerk/react";
 import LoginScreen from "./components/LoginScreen";
+import AuthScreen from "./components/AuthScreen";
 import RatingScreen from "./components/RatingScreen";
 import ProgressScreen from "./components/ProgressScreen";
 import ScannerScreen from "./components/ScannerScreen";
 import CompletionScreen from "./components/CompletionScreen";
 
-type Screen = 'login' | 'rating' | 'progress' | 'scanner' | 'completion';
+type Screen = 'login' | 'auth' | 'rating' | 'progress' | 'scanner' | 'completion';
+
+const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
 
 export default function App() {
+  const { isSignedIn, getToken } = useAuth();
+  const { user } = useUser();
+
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('isLoggedIn') === 'true');
+  const [synced, setSynced] = useState(false);
   const [unlockedStalls, setUnlockedStalls] = useState<string[]>(() => {
     const saved = localStorage.getItem('unlockedStalls');
     return saved ? JSON.parse(saved) : [];
@@ -24,7 +31,7 @@ export default function App() {
     return saved ? JSON.parse(saved) : {};
   });
   const [currentStallId, setCurrentStallId] = useState<string | null>(null);
-  
+
   const totalStalls = 5;
 
   const unlockStall = (id: string) => {
@@ -36,45 +43,52 @@ export default function App() {
     });
   };
 
-  // Handle URL parameter on mount
+  // Sync user to DB after Clerk sign-in
+  useEffect(() => {
+    if (!isSignedIn || synced) return;
+
+    const sync = async () => {
+      try {
+        const token = await getToken();
+        await fetch(`${API_BASE}/api/v1/user/sync`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (e) {
+        console.error('User sync failed:', e);
+      } finally {
+        setSynced(true);
+      }
+    };
+
+    sync();
+  }, [isSignedIn, synced, getToken, user]);
+
+  // Navigate based on auth state and URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const stallId = params.get('stallId');
-    
+
     if (stallId) {
       setCurrentStallId(stallId);
-      // If not logged in, we stay on login but remember the stallId
-      if (isLoggedIn) {
-        // If logged in and stall is already rated, go to progress
+      if (isSignedIn) {
         if (ratings[stallId] !== undefined) {
           setCurrentScreen('progress');
         } else {
-          // Unlock it and go to rating
           unlockStall(stallId);
           setCurrentScreen('rating');
         }
       } else {
         setCurrentScreen('login');
       }
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (isLoggedIn) {
+    } else if (isSignedIn) {
       setCurrentScreen('progress');
+    } else {
+      setCurrentScreen('login');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    localStorage.setItem('isLoggedIn', 'true');
-    
-    if (currentStallId) {
-      unlockStall(currentStallId);
-      setCurrentScreen('rating');
-    } else {
-      setCurrentScreen('progress');
-    }
-  };
+  }, [isSignedIn]);
 
   const handleRatingSubmit = (rating: number) => {
     if (!currentStallId) return;
@@ -92,7 +106,6 @@ export default function App() {
   };
 
   const handleScanSuccess = (decodedText: string) => {
-    // Expecting URL like https://.../?stallId=5 or just "5"
     let stallId = decodedText;
     try {
       if (decodedText.includes('stallId=')) {
@@ -100,7 +113,7 @@ export default function App() {
         stallId = url.searchParams.get('stallId') || decodedText;
       }
     } catch {
-      // Not a URL, use as is
+      // Not a URL, use raw value
     }
 
     setCurrentStallId(stallId);
@@ -111,20 +124,24 @@ export default function App() {
   return (
     <main className="min-h-screen bg-[#2A0040]">
       {currentScreen === 'login' && (
-        <LoginScreen onStart={handleLogin} />
+        <LoginScreen onStart={() => setCurrentScreen('auth')} />
       )}
-      
+
+      {currentScreen === 'auth' && (
+        <AuthScreen />
+      )}
+
       {currentScreen === 'scanner' && (
-        <ScannerScreen 
+        <ScannerScreen
           onScanSuccess={handleScanSuccess}
           onClose={() => setCurrentScreen('progress')}
         />
       )}
 
       {currentScreen === 'rating' && currentStallId && (
-        <RatingScreen 
+        <RatingScreen
           stallId={currentStallId}
-          onBack={() => setCurrentScreen('scanner')} 
+          onBack={() => setCurrentScreen('scanner')}
           onProgress={() => setCurrentScreen('progress')}
           onSubmitSuccess={handleRatingSubmit}
           ratedCount={Object.keys(ratings).length}
@@ -133,7 +150,7 @@ export default function App() {
       )}
 
       {currentScreen === 'progress' && (
-        <ProgressScreen 
+        <ProgressScreen
           unlockedStalls={unlockedStalls}
           ratings={ratings}
           onScanNext={() => setCurrentScreen('scanner')}
@@ -143,7 +160,7 @@ export default function App() {
       )}
 
       {currentScreen === 'completion' && (
-        <CompletionScreen 
+        <CompletionScreen
           onClose={() => setCurrentScreen('progress')}
           onGoToProfile={() => setCurrentScreen('progress')}
           onViewLeaderboard={() => setCurrentScreen('progress')}
@@ -152,4 +169,3 @@ export default function App() {
     </main>
   );
 }
-

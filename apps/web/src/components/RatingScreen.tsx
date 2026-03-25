@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { User, ChevronLeft, Send, BarChart3, UserCircle, Vote } from 'lucide-react';
+import { User, ChevronLeft, Send, BarChart3, Vote } from 'lucide-react';
+import { UserButton } from "@clerk/react";
 
 interface RatingScreenProps {
   stallId: string;
@@ -18,7 +19,7 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
   const handleSubmit = () => {
     if (selectedRating !== null) {
       setIsSubmitted(true);
-      
+
       // Simulate network delay then redirect
       setTimeout(() => {
         onSubmitSuccess?.(selectedRating);
@@ -33,7 +34,7 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
       {/* Header */}
       <header className="px-6 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={onBack}
             className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors"
           >
@@ -41,8 +42,8 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
           </button>
           <h1 className="text-xl font-bold font-display tracking-tight text-[#FF2D55]">Coastal Startup Fest</h1>
         </div>
-        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 overflow-hidden">
-          <UserCircle className="w-8 h-8 text-slate-400" />
+        <div className="flex items-center justify-center">
+          <UserButton />
         </div>
       </header>
 
@@ -57,7 +58,7 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
             <span className="text-sm font-bold text-[#FF2D55]">{Math.round((ratedCount / totalCount) * 100)}%</span>
           </div>
           <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${(ratedCount / totalCount) * 100}%` }}
               className="h-full bg-gradient-to-r from-[#FF2D55] to-[#FF6321]"
@@ -67,7 +68,7 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
 
         {/* Current Stall Card */}
         <div className="px-6 mb-8">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF2D55] to-[#FF6321] p-8 text-white shadow-xl shadow-red-500/20"
@@ -115,8 +116,8 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
                 onClick={() => setSelectedRating(rating)}
                 className={`
                   aspect-square rounded-2xl flex items-center justify-center text-xl font-bold transition-all border-2
-                  ${selectedRating === rating 
-                    ? 'bg-[#FF2D55] border-[#FF2D55] text-white shadow-lg shadow-red-500/30' 
+                  ${selectedRating === rating
+                    ? 'bg-[#FF2D55] border-[#FF2D55] text-white shadow-lg shadow-red-500/30'
                     : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-200'}
                   ${isSubmitted && selectedRating !== rating ? 'opacity-40' : ''}
                   ${isSubmitted ? 'cursor-default' : ''}
@@ -139,7 +140,7 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
               w-full py-5 rounded-2xl font-bold text-lg uppercase tracking-widest flex items-center justify-center gap-3 transition-all
               ${selectedRating !== null && !isSubmitted
                 ? 'bg-gradient-to-r from-[#FF2D55] to-[#FF6321] text-white shadow-xl shadow-red-500/30'
-                : isSubmitted 
+                : isSubmitted
                   ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                   : 'bg-slate-100 text-slate-300 cursor-not-allowed'}
             `}
@@ -165,7 +166,7 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
           <Vote className="w-6 h-6" />
           <span className="text-[10px] font-bold uppercase tracking-tighter">Vote</span>
         </button>
-        <button 
+        <button
           onClick={onProgress}
           className="flex flex-col items-center gap-1 text-slate-300 hover:text-slate-400 transition-colors"
         >
