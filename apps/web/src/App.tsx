@@ -14,7 +14,7 @@ import CompletionScreen from "./components/CompletionScreen";
 
 type Screen = 'login' | 'auth' | 'rating' | 'progress' | 'scanner' | 'completion';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_BASE = (import.meta.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
 
 export default function App() {
   const { isSignedIn, getToken } = useAuth();
@@ -22,6 +22,7 @@ export default function App() {
 
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
   const [synced, setSynced] = useState(false);
+  const [serverProgress, setServerProgress] = useState(0);
   const [unlockedStalls, setUnlockedStalls] = useState<string[]>(() => {
     const saved = localStorage.getItem('unlockedStalls');
     return saved ? JSON.parse(saved) : [];
@@ -30,9 +31,9 @@ export default function App() {
     const saved = localStorage.getItem('ratings');
     return saved ? JSON.parse(saved) : {};
   });
-  const [currentStallId, setCurrentStallId] = useState<string | null>(null);
+  const [currentStallData, setCurrentStallData] = useState<{ id: number, name: string, description: string, logo: string } | null>(null);
 
-  const totalStalls = 5;
+  const totalStalls = 13;
 
   const unlockStall = (id: string) => {
     setUnlockedStalls(prev => {
@@ -43,9 +44,9 @@ export default function App() {
     });
   };
 
-  // Sync user to DB after Clerk sign-in
+  // Sync user to DB after Clerk sign-in and fetch true progress
   useEffect(() => {
-    if (!isSignedIn || synced) return;
+    if (!isSignedIn || synced || !user) return;
 
     const sync = async () => {
       try {
@@ -54,8 +55,31 @@ export default function App() {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
+        
+        const progRes = await fetch(`${API_BASE}/api/v1/progress/${user.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const progJson = await progRes.json();
+        
+        if (progJson && typeof progJson.progress === 'number') {
+          setServerProgress(progJson.progress);
+          
+          if (progJson.ratings && Array.isArray(progJson.ratings)) {
+            const fetchedRatings: Record<string, number> = {};
+            progJson.ratings.forEach((r: any) => {
+              fetchedRatings[r.stallId] = r.rating;
+            });
+            
+            setRatings(fetchedRatings);
+            localStorage.setItem('ratings', JSON.stringify(fetchedRatings));
+          } else {
+             // If DB has 0 ratings, wipe the local cache to be completely accurate!
+             setRatings({});
+             localStorage.setItem('ratings', JSON.stringify({}));
+          }
+        }
       } catch (e) {
-        console.error('User sync failed:', e);
+        console.error('User sync or progress fetch failed:', e);
       } finally {
         setSynced(true);
       }
@@ -70,13 +94,14 @@ export default function App() {
     const stallId = params.get('stallId');
 
     if (stallId) {
-      setCurrentStallId(stallId);
       if (isSignedIn) {
         if (ratings[stallId] !== undefined) {
           setCurrentScreen('progress');
         } else {
-          unlockStall(stallId);
-          setCurrentScreen('rating');
+          // In an ideal world we'd fetch the stall here too if launching from URL directly,
+          // but if we don't have the stall data, we might need to fetch it.
+          // For simplicity, we just force them to the scanner to fetch it properly.
+          setCurrentScreen('scanner');
         }
       } else {
         setCurrentScreen('login');
@@ -90,35 +115,91 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSignedIn]);
 
-  const handleRatingSubmit = (rating: number) => {
-    if (!currentStallId) return;
+  const handleRatingSubmit = async (rating: number) => {
+    if (!currentStallData) return;
 
-    const newRatings = { ...ratings, [currentStallId]: rating };
-    setRatings(newRatings);
-    localStorage.setItem('ratings', JSON.stringify(newRatings));
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_BASE}/api/v1/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ stallId: currentStallData.id, rating })
+      });
+      const json = await res.json();
 
-    const ratedCount = Object.keys(newRatings).length;
-    if (ratedCount >= totalStalls) {
-      setCurrentScreen('completion');
-    } else {
+      if (json.success) {
+        const newRatings = { ...ratings, [currentStallData.id]: rating };
+        setRatings(newRatings);
+        localStorage.setItem('ratings', JSON.stringify(newRatings));
+        
+        setServerProgress(prev => {
+          const next = prev + 1;
+          if (next >= totalStalls) {
+            setCurrentScreen('completion');
+          } else {
+            setCurrentScreen('progress');
+          }
+          return next;
+        });
+      } else {
+        alert(json.message || "Failed to cast vote");
+        setCurrentScreen('progress');
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Network error while casting vote");
       setCurrentScreen('progress');
     }
   };
 
-  const handleScanSuccess = (decodedText: string) => {
-    let stallId = decodedText;
-    try {
-      if (decodedText.includes('stallId=')) {
-        const url = new URL(decodedText);
-        stallId = url.searchParams.get('stallId') || decodedText;
+  const handleScanSuccess = async (decodedText: string) => {
+    let stallSlug = decodedText;
+    
+    // Support QR codes containing the full URL like `dk24.org/:slug` or `https://dk24.org/:slug`
+    if (decodedText.includes('dk24.org/')) {
+      const parts = decodedText.split('dk24.org/');
+      // Extract everything after domain, and trim off trailing slashes or query parameters just in case
+      stallSlug = parts[parts.length - 1].split('?')[0].replace(/\/$/, "");
+    } else {
+      try {
+        if (decodedText.includes('stallId=')) {
+          const url = new URL(decodedText);
+          stallSlug = url.searchParams.get('stallId') || decodedText;
+        }
+      } catch {
+        // Not a URL, use raw value
       }
-    } catch {
-      // Not a URL, use raw value
     }
 
-    setCurrentStallId(stallId);
-    unlockStall(stallId);
-    setCurrentScreen('rating');
+    try {
+      const token = await getToken();
+      const res = await fetch(`${API_BASE}/api/v1/stalls/${stallSlug}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const json = await res.json();
+      
+      if (json.success && json.data) {
+        setCurrentStallData(json.data);
+        unlockStall(json.data.id.toString());
+        
+        if (ratings[json.data.id] !== undefined) {
+          alert("You have already rated this stall!");
+          setCurrentScreen('progress');
+        } else {
+          setCurrentScreen('rating');
+        }
+      } else {
+        alert("Invalid Stall QR or stall not found.");
+        setCurrentScreen('progress');
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Network error fetching stall details");
+      setCurrentScreen('progress');
+    }
   };
 
   return (
@@ -138,13 +219,13 @@ export default function App() {
         />
       )}
 
-      {currentScreen === 'rating' && currentStallId && (
+      {currentScreen === 'rating' && currentStallData && (
         <RatingScreen
-          stallId={currentStallId}
+          stallData={currentStallData}
           onBack={() => setCurrentScreen('scanner')}
           onProgress={() => setCurrentScreen('progress')}
           onSubmitSuccess={handleRatingSubmit}
-          ratedCount={Object.keys(ratings).length}
+          ratedCount={serverProgress}
           totalCount={totalStalls}
         />
       )}
@@ -155,6 +236,7 @@ export default function App() {
           ratings={ratings}
           onScanNext={() => setCurrentScreen('scanner')}
           totalCount={totalStalls}
+          serverProgress={serverProgress}
           onBackToVote={() => setCurrentScreen('scanner')}
         />
       )}

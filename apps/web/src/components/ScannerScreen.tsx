@@ -28,32 +28,28 @@ export default function ScannerScreen({ onScanSuccess, onClose }: ScannerScreenP
         await html5QrCode.start(
           { facingMode: "environment" },
           {
-            fps: 10,
-            qrbox: { width: 250, height: 250 },
+            fps: 20,
+            qrbox: { width: 250, height: 250 }, // strict 250x250 native box
           },
-          (decodedText: string) => {
+          async (decodedText: string) => {
             if (isUnmounted) return;
-            // Success
             setIsScanning(false);
-            if (html5QrCode && html5QrCode.isScanning) {
-              html5QrCode.stop().then(() => {
-                onScanSuccess(decodedText);
-              }).catch((err: unknown) => {
-                console.error("Failed to stop scanner", err);
-                onScanSuccess(decodedText);
-              });
-            } else {
-              onScanSuccess(decodedText);
+            
+            if (scannerRef.current && scannerRef.current.isScanning) {
+              try {
+                await scannerRef.current.stop();
+                scannerRef.current.clear();
+              } catch (err) {
+                console.error("Failed to stop scanner on success", err);
+              }
             }
+            onScanSuccess(decodedText);
           },
-          () => {
-            // parse error, ignore it.
-          }
+          () => {} // ignore parse errors
         );
         
-        // In case it unmounted while initializing
         if (isUnmounted && html5QrCode.isScanning) {
-          html5QrCode.stop().catch(console.error);
+          html5QrCode.stop().then(() => html5QrCode?.clear()).catch(console.error);
         }
       } catch (err) {
         if (!isUnmounted) {
@@ -72,12 +68,25 @@ export default function ScannerScreen({ onScanSuccess, onClose }: ScannerScreenP
     };
   }, [onScanSuccess]);
 
+  const handleClose = async () => {
+    // Explicitly stop the camera so the light turns off immediately
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (e) {
+        console.error("Error stopping camera on close", e);
+      }
+    }
+    onClose();
+  };
+
   return (
     <div className="h-[100dvh] bg-black relative flex flex-col overflow-hidden text-white">
       {/* Header */}
       <header className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between z-50">
         <button 
-          onClick={onClose}
+          onClick={handleClose}
           className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20"
         >
           <ChevronLeft className="w-6 h-6" />
@@ -87,7 +96,7 @@ export default function ScannerScreen({ onScanSuccess, onClose }: ScannerScreenP
           <span className="text-xs font-bold uppercase tracking-wider">Auto Flash</span>
         </div>
         <button 
-          onClick={onClose}
+          onClick={handleClose}
           className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20"
         >
           <X className="w-6 h-6" />
@@ -118,43 +127,11 @@ export default function ScannerScreen({ onScanSuccess, onClose }: ScannerScreenP
           )}
         </div>
 
-        {/* Scanning Area Overlay */}
-        <div className="relative w-64 h-64 z-20 pointer-events-none">
-          {/* Corners */}
-          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 rounded-tl-lg" />
-          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 rounded-tr-lg" />
-          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 rounded-bl-lg" />
-          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 rounded-br-lg" />
-
-          {/* Scanning Line */}
-          {isScanning && !error && (
-            <motion.div 
-              animate={{ top: ['0%', '100%', '0%'] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-              className="absolute left-0 right-0 h-1 bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.8)] z-10"
-            />
-          )}
-
-          {/* QR Code Placeholder (only if not scanning yet or error) */}
-          {!error && isScanning && (
-            <div className="absolute inset-4 flex items-center justify-center opacity-20">
-              <QrCode className="w-full h-full text-white" />
-            </div>
-          )}
-        </div>
-
-        <div className="mt-12 text-center px-8 z-20 relative">
+        <div className="mt-auto mb-12 text-center px-8 z-20 relative bg-black/40 p-4 rounded-xl backdrop-blur-md max-w-sm">
           <h2 className="text-xl font-bold mb-2 drop-shadow-lg">Scan Stall QR Code</h2>
           <p className="text-white/80 text-sm drop-shadow-md">Align the QR code within the frame to start rating the stall.</p>
         </div>
       </div>
-
-      {/* Footer Actions */}
-      <footer className="p-12 flex flex-col items-center gap-6 bg-gradient-to-t from-black/80 to-transparent z-20 relative">
-        
-        
-        
-      </footer>
 
       {/* Success Overlay */}
       {!isScanning && !error && (

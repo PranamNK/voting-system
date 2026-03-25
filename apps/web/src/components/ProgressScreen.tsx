@@ -9,6 +9,7 @@ interface ProgressScreenProps {
   unlockedStalls?: string[];
   ratings?: Record<string, number>;
   totalCount?: number;
+  serverProgress?: number;
 }
 
 export default function ProgressScreen({
@@ -17,9 +18,12 @@ export default function ProgressScreen({
   onScanNext,
   unlockedStalls = [],
   ratings = {},
-  totalCount = 5
+  totalCount = 13,
+  serverProgress = 0
 }: ProgressScreenProps) {
-  const ratedCount = Object.keys(ratings).length;
+  // Always use the server's synced progress as the ultimate source of truth, fallback to local if 0
+  const localRatedCount = Object.keys(ratings).length;
+  const ratedCount = Math.max(serverProgress, localRatedCount);
   const progressPercentage = Math.round((ratedCount / totalCount) * 100);
 
   return (
@@ -64,12 +68,19 @@ export default function ProgressScreen({
                 <span className="text-[10px] font-bold text-[#FF2D55] uppercase tracking-wider">{progressPercentage}% Complete</span>
               </div>
             </div>
-            <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden">
+            <div className="w-full h-3 bg-slate-50 rounded-full overflow-hidden mb-4">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercentage}%` }}
                 className="h-full bg-gradient-to-r from-[#FF2D55] to-[#FF6321]"
               />
+            </div>
+            
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-start gap-3">
+              <div className="text-amber-500 mt-0.5">⚠️</div>
+              <p className="text-amber-700 text-xs font-medium">
+                You must rate at least <strong>10 stalls</strong> for your votes to be counted in the final fest results!
+              </p>
             </div>
           </motion.div>
 

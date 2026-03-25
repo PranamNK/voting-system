@@ -4,7 +4,7 @@ import { User, ChevronLeft, Send, BarChart3, Vote } from 'lucide-react';
 import { UserButton } from "@clerk/react";
 
 interface RatingScreenProps {
-  stallId: string;
+  stallData: { id: number; name: string; description: string; logo: string | null };
   onBack?: () => void;
   onProgress?: () => void;
   onSubmitSuccess?: (rating: number) => void;
@@ -12,7 +12,7 @@ interface RatingScreenProps {
   totalCount?: number;
 }
 
-export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSuccess, ratedCount = 0, totalCount = 5 }: RatingScreenProps) {
+export default function RatingScreen({ stallData, onBack, onProgress, onSubmitSuccess, ratedCount = 0, totalCount = 13 }: RatingScreenProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -87,9 +87,9 @@ export default function RatingScreen({ stallId, onBack, onProgress, onSubmitSucc
                 </div>
               </div>
               <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-3">Current Stall</span>
-              <h3 className="text-3xl font-bold font-display mb-3 leading-tight">Stall #{stallId.padStart(2, '0')}: Eco-Tech Solutions</h3>
+              <h3 className="text-3xl font-bold font-display mb-3 leading-tight">{stallData.name}</h3>
               <p className="text-white/90 text-sm leading-relaxed max-w-[280px] font-medium">
-                Innovating sustainable hardware for the next digital era.
+                {stallData.description || "No description provided."}
               </p>
             </div>
           </motion.div>
