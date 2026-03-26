@@ -23,6 +23,8 @@ export default function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
   const [synced, setSynced] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
+  const [feedbackModal, setFeedbackModal] = useState<{ title: string, message: string, type: 'success' | 'error' } | null>(null);
+
   const [ratings, setRatings] = useState<Record<string, number>>(() => {
     const saved = localStorage.getItem('ratings');
     return saved ? JSON.parse(saved) : {};
@@ -145,6 +147,13 @@ export default function App() {
         
         setServerProgress(prev => {
           const next = prev + 1;
+          
+          setFeedbackModal({
+            title: "Vote Recorded!",
+            message: `You successfully rated ${currentStallData.name}! Your progress has been updated.`,
+            type: 'success'
+          });
+
           if (next >= totalStalls) {
             setCurrentScreen('completion');
           } else {
@@ -153,12 +162,20 @@ export default function App() {
           return next;
         });
       } else {
-        alert(json.message || "Failed to cast vote");
+        setFeedbackModal({
+          title: "Submission Failed",
+          message: json.message || "We couldn't record your vote. Please try again in a moment.",
+          type: 'error'
+        });
         setCurrentScreen('progress');
       }
     } catch (e) {
       console.error(e);
-      alert("Network error while casting vote");
+      setFeedbackModal({
+        title: "Connection Error",
+        message: "Failed to securely connect to the voting servers. Please check your internet connection and try again.",
+        type: 'error'
+      });
       setCurrentScreen('progress');
     }
   };
@@ -166,26 +183,21 @@ export default function App() {
   const handleScanSuccess = async (decodedText: string) => {
     let stallSlug = decodedText.trim();
     
-    // Extremely robust parser that organically supports ANY domain name forever.
-    // E.g., "dk24.org/stall-1", "https://new-domain.com/stall-1", or "?stallId=stall-1"
     try {
-      // Ensure the string looks like a URL so the URL parser doesn't crash on raw text
       const urlToParse = stallSlug.includes('://') ? stallSlug : `https://${stallSlug}`;
       const url = new URL(urlToParse);
       
       if (url.searchParams.has('stallId')) {
         stallSlug = url.searchParams.get('stallId') || decodedText;
       } else {
-        // Extract the very last segment of the path (instantly ignores the domain)
         const pathSegments = url.pathname.split('/').filter(Boolean);
         if (pathSegments.length > 0) {
           stallSlug = pathSegments[pathSegments.length - 1];
         } else {
-          stallSlug = decodedText; // Fallback to raw string
+          stallSlug = decodedText;
         }
       }
     } catch {
-      // Fallback if URL parsing fails entirely
       const parts = stallSlug.split('?')[0].split('/').filter(Boolean);
       stallSlug = parts[parts.length - 1] || decodedText;
     }
@@ -201,18 +213,30 @@ export default function App() {
         setCurrentStallData(json.data);
         
         if (ratings[json.data.id] !== undefined) {
-          alert("You have already rated this stall!");
+          setFeedbackModal({
+            title: "Already Rated",
+            message: "You have already submitted a rating for this stall. Please scan a different stall's QR code to continue voting!",
+            type: 'error'
+          });
           setCurrentScreen('progress');
         } else {
           setCurrentScreen('rating');
         }
       } else {
-        alert("Invalid Stall QR or stall not found.");
+        setFeedbackModal({
+          title: "Invalid Stall",
+          message: "The QR code you scanned does not belong to a valid stall for this event.",
+          type: 'error'
+        });
         setCurrentScreen('progress');
       }
     } catch (e) {
       console.error(e);
-      alert("Network error fetching stall details");
+      setFeedbackModal({
+        title: "Connection Error",
+        message: "Failed to securely connect to the rating servers. Please check your internet connection and try again.",
+        type: 'error'
+      });
       setCurrentScreen('progress');
     }
   };
@@ -220,6 +244,37 @@ export default function App() {
   return (
     <main className="min-h-screen bg-[#2A0040] flex flex-col">
       <div className="flex-grow flex flex-col relative">
+        {/* Global Feedback Modal */}
+        {feedbackModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl relative animate-in fade-in zoom-in duration-200 border border-slate-100">
+              <div className={`
+                w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6
+                ${feedbackModal.type === 'success' ? 'bg-emerald-100' : 'bg-rose-100'}
+              `}>
+                <span className="text-2xl">
+                  {feedbackModal.type === 'success' ? '✅' : '⚠️'}
+                </span>
+              </div>
+              <h3 className="text-xl font-bold text-center text-slate-800 mb-2 font-display">{feedbackModal.title}</h3>
+              <p className="text-slate-500 text-center text-sm font-medium mb-8 leading-relaxed px-2">
+                {feedbackModal.message}
+              </p>
+              <button
+                onClick={() => setFeedbackModal(null)}
+                className={`
+                  w-full text-white font-bold py-4 rounded-2xl transition-all shadow-lg font-display tracking-wider
+                  ${feedbackModal.type === 'success' 
+                    ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' 
+                    : 'bg-[#FF2D55] hover:bg-[#E0264A] shadow-red-500/20'}
+                `}
+              >
+                {feedbackModal.type === 'success' ? 'CONTINUE VOTING' : 'CLOSE'}
+              </button>
+            </div>
+          </div>
+        )}
+
         {currentScreen === 'login' && (
           <LoginScreen onStart={() => setCurrentScreen('auth')} />
         )}

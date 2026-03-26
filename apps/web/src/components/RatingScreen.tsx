@@ -88,10 +88,12 @@ export default function RatingScreen({ stallData, onBack, onProgress, onSubmitSu
                 </div>
               </div>
               <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-3">Current Stall</span>
-              <h3 className="text-3xl font-bold font-display mb-3 leading-tight">{stallData.name}</h3>
-              <p className="text-white/90 text-sm leading-relaxed max-w-[280px] font-medium">
-                {stallData.description || "No description provided."}
-              </p>
+              <h3 className="text-3xl font-bold font-display mb-4 leading-tight w-full">{stallData.name}</h3>
+              <div className="w-full bg-black/10 rounded-xl p-4 md:p-6 backdrop-blur-md border border-white/10 shadow-inner">
+                <p className="text-white text-sm md:text-base leading-relaxed font-medium text-justify">
+                  {stallData.description || "No description provided."}
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>

@@ -127,8 +127,9 @@ export default function ProgressScreen({
           <div className="space-y-3">
             {Array.from({ length: totalCount }).map((_, i) => {
               // We map purely by index for the visual directory slots. 
-              // We grab the actual rated stall from the array dynamically to bypass hardcoded DB IDs.
-              const ratedStall = ratedStalls[i]; 
+              // Now we explicitly match the DB stallId to the strict slot index so 6 maps to 6!
+              const expectedStallId = i + 1;
+              const ratedStall = ratedStalls.find(s => s.stallId === expectedStallId); 
               
               const status = ratedStall ? 'rated' : 'locked';
               
