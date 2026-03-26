@@ -97,14 +97,37 @@ export default function RatingScreen({ stallData, onBack, onProgress, onSubmitSu
 
         {/* Rating Grid */}
         <div className="px-6 mb-8">
-          <div className="text-center mb-6">
-            <h4 className="text-lg font-bold text-slate-800 mb-1">
-              {isSubmitted ? 'Your rating has been recorded' : 'Rate this stall from 0 to 10'}
-            </h4>
-            <p className="text-slate-400 text-xs">
-              {isSubmitted ? `You voted ${selectedRating}/10 for this stall` : 'Tap a number to cast your vote'}
-            </p>
-          </div>
+          {!isSubmitted ? (
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 flex flex-col gap-4 mb-6 shadow-sm text-left">
+              <div className="flex items-start gap-3">
+                <span className="text-amber-500 text-lg mt-0.5">🏆</span>
+                <div className="flex flex-col gap-1">
+                  <p className="text-amber-900 text-sm font-bold leading-tight">
+                    You are voting for the People’s Choice Award.
+                  </p>
+                  <p className="text-amber-800 text-sm font-medium">
+                    Please rate this Startup on a scale of 0–10.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-amber-100/50 p-3 rounded-lg border border-amber-200/50">
+                <span className="text-amber-600 mt-0.5 text-sm">⚠️</span>
+                <p className="text-amber-800 text-xs font-medium leading-relaxed">
+                  Your votes will be counted only if you rate at least <strong>10 different stalls</strong>.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center mb-6 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+              <h4 className="text-lg font-bold text-emerald-800 mb-1">
+                Your rating has been recorded ✔️
+              </h4>
+              <p className="text-emerald-600 text-sm font-medium mt-1">
+                You voted {selectedRating}/10 for this stall.
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
             {ratings.map((rating) => (

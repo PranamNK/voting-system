@@ -75,12 +75,21 @@ export default function ProgressScreen({
                 className="h-full bg-gradient-to-r from-[#FF2D55] to-[#FF6321]"
               />
             </div>
-            
-            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex items-start gap-3">
-              <div className="text-amber-500 mt-0.5">⚠️</div>
-              <p className="text-amber-700 text-xs font-medium">
-                You must rate at least <strong>10 stalls</strong> for your votes to be counted in the final fest results!
-              </p>
+
+            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+
+                <p className="text-amber-900 text-sm font-bold">
+                  You are voting for the People’s Choice Award.
+                </p>
+              </div>
+
+              <div className="flex items-start gap-2 bg-amber-100/50 p-3 rounded-lg border border-amber-200/50">
+                <span className="text-amber-600 mt-0.5 text-sm">⚠️</span>
+                <p className="text-amber-800 text-xs font-medium leading-relaxed">
+                  Your votes will be counted only if you rate at least <strong>10 different stalls</strong>.
+                </p>
+              </div>
             </div>
           </motion.div>
 
