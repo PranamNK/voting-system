@@ -92,22 +92,64 @@ export default function App() {
   // Navigate based on auth state and URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const stallId = params.get('stallId');
+    let stallId = params.get('stallId');
+
+    if (!stallId && window.location.pathname !== '/' && window.location.pathname !== '') {
+      const pathSegments = window.location.pathname.split('/').filter(Boolean);
+      if (pathSegments.length > 0) {
+        stallId = pathSegments[pathSegments.length - 1];
+      }
+    }
 
     if (stallId) {
       if (isSignedIn) {
-        if (ratings[stallId] !== undefined) {
-          setCurrentScreen('progress');
-        } else {
-          // In an ideal world we'd fetch the stall here too if launching from URL directly,
-          // but if we don't have the stall data, we might need to fetch it.
-          // For simplicity, we just force them to the scanner to fetch it properly.
-          setCurrentScreen('scanner');
-        }
+        // Automatically verify and navigate to the stall
+        const fetchStallFromUrl = async () => {
+          try {
+            const token = await getToken();
+            const res = await fetch(`${API_BASE}/api/v1/stalls/${stallId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            const json = await res.json();
+            
+            if (json.success && json.data) {
+              setCurrentStallData(json.data);
+              
+              if (ratings[json.data.id] !== undefined) {
+                setFeedbackModal({
+                  title: "Already Rated",
+                  message: "You have already submitted a rating for this stall. Please scan a different stall's QR code to continue voting!",
+                  type: 'error'
+                });
+                setCurrentScreen('progress');
+              } else {
+                setCurrentScreen('rating');
+              }
+            } else {
+              setFeedbackModal({
+                title: "Invalid Stall Link",
+                message: "The link you followed does not belong to a valid stall for this event.",
+                type: 'error'
+              });
+              setCurrentScreen('progress');
+            }
+          } catch (e) {
+            console.error(e);
+            setFeedbackModal({
+              title: "Connection Error",
+              message: "Failed to connect. Please check your internet connection.",
+              type: 'error'
+            });
+            setCurrentScreen('progress');
+          }
+        };
+
+        setCurrentScreen('progress'); // Show loading state
+        fetchStallFromUrl();
+        window.history.replaceState({}, document.title, '/');
       } else {
         setCurrentScreen('login');
       }
-      window.history.replaceState({}, document.title, window.location.pathname);
     } else if (isSignedIn) {
       setCurrentScreen('progress');
     } else {
