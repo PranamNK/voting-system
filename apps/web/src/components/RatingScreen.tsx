@@ -117,7 +117,7 @@ export default function RatingScreen({ stallData, onBack, onProgress, onSubmitSu
               <div className="flex items-start gap-3 bg-amber-100/50 p-3 rounded-lg border border-amber-200/50">
                 <span className="text-amber-600 mt-0.5 text-sm">⚠️</span>
                 <p className="text-amber-800 text-xs font-medium leading-relaxed">
-                  Your votes will be counted only if you rate at least <strong>10 different stalls</strong>.
+                  Your votes will be counted only if you rate at least <strong>12 different stalls</strong>.
                 </p>
               </div>
             </div>
