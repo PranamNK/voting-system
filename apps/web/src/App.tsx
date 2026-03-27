@@ -36,7 +36,7 @@ export default function App() {
   });
   const [currentStallData, setCurrentStallData] = useState<{ id: number, name: string, description: string, logo: string } | null>(null);
 
-  const totalStalls = 13;
+  const totalStalls = 11;
 
   // Sync user to DB after Clerk sign-in and fetch true progress
   useEffect(() => {
@@ -358,7 +358,7 @@ export default function App() {
             onScanNext={() => setCurrentScreen('scanner')}
             totalCount={totalStalls}
             serverProgress={serverProgress}
-            onBackToVote={() => setCurrentScreen('scanner')}
+            
           />
         )}
 

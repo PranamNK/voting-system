@@ -1,214 +1,283 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { User, ChevronLeft, Send, BarChart3, Vote } from 'lucide-react';
-import { UserButton } from "@clerk/react";
-import Footer from "./Footer";
+import { Send } from 'lucide-react';
 
 interface RatingScreenProps {
   stallData: { id: number; name: string; description: string; logo: string | null };
-  onBack?: () => void;
-  onProgress?: () => void;
   onSubmitSuccess?: (rating: number) => void;
   ratedCount?: number;
   totalCount?: number;
 }
 
-export default function RatingScreen({ stallData, onBack, onProgress, onSubmitSuccess, ratedCount = 0, totalCount = 13 }: RatingScreenProps) {
+export default function RatingScreen({ stallData, onSubmitSuccess }: RatingScreenProps) {
   const [selectedRating, setSelectedRating] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedRating(parseInt(e.target.value, 10));
+  };
+
+  const getRatingColor = (val: number | null) => {
+    if (val === null) return "#94a3b8";
+    if (val <= 3) return "#f43f5e";
+    if (val <= 7) return "#fbbf24";
+    return "#22c55e";
+  };
 
   const handleSubmit = () => {
     if (selectedRating !== null) {
       setIsSubmitted(true);
-
-      // Simulate network delay then redirect
       setTimeout(() => {
         onSubmitSuccess?.(selectedRating);
       }, 1500);
     }
   };
 
-  const ratings = Array.from({ length: 11 }, (_, i) => i);
-
   return (
-    <div className="h-[100dvh] bg-white relative flex flex-col overflow-hidden font-sans text-slate-900">
-      {/* Header */}
-      <header className="px-6 py-4 flex items-center justify-between bg-white/80 backdrop-blur-md sticky top-0 z-30 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onBack}
-            className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6 text-[#FF2D55]" />
-          </button>
-          <h1 className="text-xl font-bold font-display tracking-tight text-[#FF2D55]">Coastal Startup Fest</h1>
-        </div>
-        <div className="flex items-center justify-center">
-          <UserButton />
-        </div>
-      </header>
+    <div className="fixed inset-0 overflow-y-auto overflow-x-hidden bg-[#070014] touch-pan-y">
+      <div
+        className="min-h-full w-full bg-cover bg-center bg-no-repeat relative flex flex-col font-sans text-white"
+        style={{ backgroundImage: 'url("/bg.webp")' }}
+      >
+        {/* Dark gradient overlay for readability if the image is too bright */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)] pointer-events-none" />
 
-      <main className="flex-1 overflow-y-auto pb-24">
-        {/* Progress Section */}
-        <div className="px-6 py-6">
-          <div className="flex justify-between items-end mb-3">
-            <div>
-              <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 block mb-1">Your Progress</span>
-              <h2 className="text-2xl font-bold font-display text-slate-900">{ratedCount}/{totalCount} stalls rated</h2>
-            </div>
-            <span className="text-sm font-bold text-[#FF2D55]">{Math.round((ratedCount / totalCount) * 100)}%</span>
+        {/* Branding - Top Corner Page Overlays */}
+        <div className="absolute top-4 left-6 sm:left-8 pointer-events-none z-30">
+          <img
+            src="/Nitte_logo.webp"
+            alt="Nitte"
+            className="h-10 sm:h-12 w-auto object-contain"
+          />
+        </div>
+
+        <div className="absolute top-0 right-0 pointer-events-none z-30 opacity-90">
+          <img
+            src="/Fiza_logo.webp"
+            alt="Fiza"
+            className="h-60 sm:h-80 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] translate-x-2 -translate-y-24 sm:translate-x-4 sm:-translate-y-28"
+          />
+        </div>
+
+        <main className="flex-1 w-full max-w-lg mx-auto flex flex-col px-6 pt-16 sm:pt-24 pb-32 relative z-20">
+          {/* CURRENT STALL */}
+          <div className="flex items-center gap-4 justify-center mb-3 mt-4">
+            <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-blue-400/60" />
+            <span className="text-[11px] uppercase tracking-[0.25em] font-semibold text-blue-100/90 shadow-blue-500 max-w-min text-center whitespace-nowrap">Current Stall</span>
+            <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-blue-400/60" />
           </div>
-          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${(ratedCount / totalCount) * 100}%` }}
-              className="h-full bg-gradient-to-r from-[#FF2D55] to-[#FF6321]"
-            />
-          </div>
-        </div>
 
-        {/* Current Stall Card */}
-        <div className="px-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#FF2D55] to-[#FF6321] p-8 text-white shadow-xl shadow-red-500/20"
-          >
-            {/* Topographic Pattern Overlay */}
-            <svg className="absolute inset-0 opacity-20 pointer-events-none" width="100%" height="100%" viewBox="0 0 400 400">
-              <path d="M-50,150 C50,100 150,250 250,150 S350,50 450,150" fill="none" stroke="white" strokeWidth="2" />
-              <path d="M-50,250 C80,180 180,350 280,250 S380,150 450,250" fill="none" stroke="white" strokeWidth="2" />
-              <path d="M-50,50 C100,0 200,100 300,50 S400,0 450,50" fill="none" stroke="white" strokeWidth="2" />
-            </svg>
+          <h2 className="text-3xl sm:text-4xl font-bold font-display text-center tracking-tight bg-gradient-to-r from-rose-400 via-purple-300 to-cyan-300 bg-clip-text text-transparent mb-8 pb-1 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+            {stallData.name}
+          </h2>
 
-            <div className="relative z-10 flex flex-col items-center text-center">
-              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-xl border border-white/30 flex items-center justify-center mb-6 shadow-inner">
-                <div className="w-12 h-12 rounded-lg bg-white flex items-center justify-center shadow-lg">
-                  <Vote className="w-8 h-8 text-[#FF2D55]" />
-                </div>
-              </div>
-              <span className="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-widest mb-3">Current Stall</span>
-              <h3 className="text-3xl font-bold font-display mb-4 leading-tight w-full">{stallData.name}</h3>
-              <div className="w-full bg-black/10 rounded-xl p-4 md:p-6 backdrop-blur-md border border-white/10 shadow-inner">
-                <p className="text-white text-sm md:text-base leading-relaxed font-medium text-justify">
-                  {stallData.description || "No description provided."}
+          {/* Info Card */}
+          <div className="bg-white/[0.04] backdrop-blur-xl border border-white/20 rounded-3xl p-5 sm:p-6 shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative overflow-hidden mb-4">
+            {/* Inner subtle glow */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] to-transparent pointer-events-none" />
+
+            {/* Trophy Info */}
+            <div className="flex items-start gap-4 mb-5 relative z-10">
+              <span className="text-xl sm:text-2xl leading-none pt-0.5 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">🏆</span>
+              <div className="flex flex-col gap-1">
+                <p className="text-white/90 text-sm font-medium leading-snug">
+                  You are voting for the People's Choice Award.
+                </p>
+                <p className="text-white/60 text-xs">
+                  Please rate this Startup on a scale of 0–10.
                 </p>
               </div>
             </div>
-          </motion.div>
-        </div>
 
-        {/* Rating Grid */}
-        <div className="px-6 mb-8">
-          {!isSubmitted ? (
-            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 flex flex-col gap-4 mb-6 shadow-sm text-left">
-              <div className="flex items-start gap-3">
-                <span className="text-amber-500 text-lg mt-0.5">🏆</span>
-                <div className="flex flex-col gap-1">
-                  <p className="text-amber-900 text-sm font-bold leading-tight">
-                    You are voting for the People’s Choice Award.
-                  </p>
-                  <p className="text-amber-800 text-sm font-medium">
-                    Please rate this Startup on a scale of 0–10.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 bg-amber-100/50 p-3 rounded-lg border border-amber-200/50">
-                <span className="text-amber-600 mt-0.5 text-sm">⚠️</span>
-                <p className="text-amber-800 text-xs font-medium leading-relaxed">
-                  Your votes will be counted only if you rate at least <strong>12 different stalls</strong>.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center mb-6 bg-emerald-50 p-4 rounded-xl border border-emerald-100">
-              <h4 className="text-lg font-bold text-emerald-800 mb-1">
-                Your rating has been recorded ✔️
-              </h4>
-              <p className="text-emerald-600 text-sm font-medium mt-1">
-                You voted {selectedRating}/10 for this stall.
+            {/* Warning Badge */}
+            <div className="flex items-start gap-3 bg-white/5 border border-white/10 rounded-xl p-3 relative z-10">
+              <span className="text-amber-400 text-base leading-none drop-shadow-[0_0_8px_rgba(251,191,36,0.6)] pt-0.5">⚠️</span>
+              <p className="text-white/70 text-[13px] font-medium leading-relaxed">
+                Your votes will be counted only if you rate <span className="text-white font-bold">all 11 stalls</span>.
               </p>
             </div>
-          )}
-
-          <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-            {ratings.map((rating) => (
-              <motion.button
-                key={rating}
-                disabled={isSubmitted}
-                whileHover={!isSubmitted ? { scale: 1.05 } : {}}
-                whileTap={!isSubmitted ? { scale: 0.95 } : {}}
-                onClick={() => setSelectedRating(rating)}
-                className={`
-                  aspect-square rounded-2xl flex items-center justify-center text-xl font-bold transition-all border-2
-                  ${selectedRating === rating
-                    ? 'bg-[#FF2D55] border-[#FF2D55] text-white shadow-lg shadow-red-500/30'
-                    : 'bg-slate-50 border-slate-100 text-slate-400 hover:border-slate-200'}
-                  ${isSubmitted && selectedRating !== rating ? 'opacity-40' : ''}
-                  ${isSubmitted ? 'cursor-default' : ''}
-                `}
-              >
-                {rating}
-              </motion.button>
-            ))}
           </div>
-        </div>
+          <div className="relative h-28 flex flex-col justify-center px-4 mb-2">
+            <div className="relative h-16 flex items-center group">
 
-        {/* Submit Button */}
-        <div className="px-6">
-          <motion.button
-            disabled={selectedRating === null || isSubmitted}
-            onClick={handleSubmit}
-            whileHover={selectedRating !== null && !isSubmitted ? { scale: 1.02 } : {}}
-            whileTap={selectedRating !== null && !isSubmitted ? { scale: 0.98 } : {}}
-            className={`
-              w-full py-5 rounded-2xl font-bold text-lg uppercase tracking-widest flex items-center justify-center gap-3 transition-all
-              ${selectedRating !== null && !isSubmitted
-                ? 'bg-gradient-to-r from-[#FF2D55] to-[#FF6321] text-white shadow-xl shadow-red-500/30'
-                : isSubmitted
-                  ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                  : 'bg-slate-100 text-slate-300 cursor-not-allowed'}
-            `}
-          >
-            {isSubmitted ? 'Vote Recorded' : 'Submit Rating'}
-            {!isSubmitted && <Send className="w-5 h-5" />}
-            {isSubmitted && (
+              <div className="absolute left-0 right-0 h-5 bg-white/5 rounded-full border border-white/10 backdrop-blur-md shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] overflow-hidden">
+
+                <motion.div
+                  className="h-full relative transition-colors duration-500"
+                  style={{
+                    width: `${((selectedRating ?? 0) / 10) * 100}%`,
+                    backgroundColor: getRatingColor(selectedRating)
+                  }}
+                >
+                  {/* Liquid Glow Effect */}
+                  <div className="absolute top-0 right-0 h-full w-8 bg-white/30 blur-md animate-pulse" />
+                </motion.div>
+              </div>
+
+              {/* Tick Marks - Enhanced */}
+              <div className="absolute left-0 right-0 flex justify-between px-2 pointer-events-none">
+                {[...Array(11)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-[2px] h-3 rounded-full transition-all duration-300 ${selectedRating !== null && i <= selectedRating ? 'bg-white/60 scale-y-125' : 'bg-white/10'
+                      }`}
+                  />
+                ))}
+              </div>
+
+              {/* Native Input Range */}
+              <input
+                type="range"
+                min="0"
+                max="10"
+                step="1"
+                value={selectedRating ?? 0}
+                onChange={handleSliderChange}
+                disabled={isSubmitted}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-30 disabled:cursor-default"
+              />
+
+              {/* Enhanced Custom Thumb - Rectangular Design */}
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center"
+                className="absolute w-10 h-16 bg-white rounded-xl shadow-[0_0_35px_rgba(255,255,255,0.4)] z-20 pointer-events-none flex items-center justify-center"
+                style={{ border: `4px solid ${getRatingColor(selectedRating)}` }}
+                animate={{
+                  left: `calc(${((selectedRating ?? 0) / 10) * 100}% - 20px)`,
+                  x: selectedRating === 0 ? 20 : selectedRating === 10 ? -20 : 0,
+                  scale: isSubmitted ? 0.8 : 1
+                }}
+                whileHover={!isSubmitted ? { scale: 1.1 } : {}}
+                transition={{ type: "spring", stiffness: 600, damping: 25 }}
               >
-                <div className="w-3 h-3 bg-white rounded-full" />
+                {/* Number inside Thumb */}
+                <div className="flex flex-col items-center justify-center">
+                  <span className={`text-sm font-black transition-colors duration-300 ${selectedRating === null ? 'text-black/20' : 'text-black'}`}>
+                    {selectedRating ?? 0}
+                  </span>
+                  <div
+                    className="w-4 h-0.5 rounded-full mt-1 transition-colors duration-300"
+                    style={{ backgroundColor: getRatingColor(selectedRating) }}
+                  />
+                </div>
+
               </motion.div>
-            )}
-          </motion.button>
-        </div>
+            </div>
+          </div>
 
-        {/* Footer */}
-        <div className="mt-12 -mx-6 -mb-24">
-          <Footer className="pb-[7rem]" />
-        </div>
-      </main>
+          {/* Submit Button */}
+          <div className="mt-0 flex justify-center">
+            <motion.button
+              disabled={selectedRating === null || isSubmitted}
+              onClick={handleSubmit}
+              whileHover={selectedRating !== null && !isSubmitted ? { scale: 1.02 } : {}}
+              whileTap={selectedRating !== null && !isSubmitted ? { scale: 0.98 } : {}}
+              className={`
+                px-8 py-3.5 sm:px-12 sm:py-4 rounded-[100px] font-bold text-sm sm:text-base uppercase tracking-[0.18em] flex items-center justify-center gap-3 transition-all duration-300
+                ${selectedRating !== null && !isSubmitted
+                  ? `bg-white text-black shadow-2xl`
+                  : isSubmitted
+                    ? 'bg-emerald-500 text-white'
+                    : 'bg-white/5 border border-white/10 text-white/30 cursor-not-allowed backdrop-blur-sm'}
+              `}
+              style={{
+                minWidth: "220px"
+              }}
+            >
+              {isSubmitted ? 'Vote Recorded' : 'Submit Rating'}
+              {!isSubmitted && <Send className="w-5 h-5 -mt-0.5 opacity-90" />}
+              {isSubmitted && (
+                <span className="text-lg leading-none -mt-0.5">✓</span>
+              )}
+            </motion.button>
+          </div>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-8 py-4 flex items-center justify-between z-40">
-        <button className="flex flex-col items-center gap-1 text-[#FF2D55]">
-          <Vote className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Vote</span>
-        </button>
-        <button
-          onClick={onProgress}
-          className="flex flex-col items-center gap-1 text-slate-300 hover:text-slate-400 transition-colors"
-        >
-          <BarChart3 className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Progress</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-slate-300 hover:text-slate-400 transition-colors">
-          <User className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Profile</span>
-        </button>
-      </nav>
+          {/* Branding Block - Vertical stacking for better visibility */}
+          <div className="mt-4 flex flex-col items-center gap-5 relative z-10">
+            {/* Powered By Section */}
+            <div className="flex flex-col items-center">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-40 text-center font-display mb-3">
+                Powered By
+              </span>
+              <a
+                href="https://dk24.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-3 hover:opacity-80 transition-opacity"
+              >
+                <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 overflow-hidden">
+                  <img
+                    src="/dk24.webp"
+                    alt="DK24"
+                    className="w-full h-full object-contain scale-110"
+                  />
+                </div>
+                <span className="text-2xl sm:text-3xl font-black font-display tracking-tight whitespace-nowrap bg-gradient-to-r from-white via-white to-white/70 bg-clip-text text-transparent">
+
+                </span>
+              </a>
+            </div>
+
+            {/* In Collaboration Section */}
+            <div className="flex flex-col items-center mb-4">
+              <span className="text-[10px] uppercase tracking-[0.2em] font-bold opacity-40 text-center font-display mb-4">
+                In Collaboration with
+              </span>
+              <div className="flex items-center justify-center gap-5 sm:gap-8">
+                {[
+                  {
+                    id: 1,
+                    src: "/cosc.webp",
+                    alt: "COSC",
+                    url: "https://www.linkedin.com/company/canara-students-open-source-community/",
+                  },
+                  {
+                    id: 2,
+                    src: "/sosc.webp",
+                    alt: "SOSC",
+                    url: "https://sosc.org.in/",
+                  },
+                  {
+                    id: 3,
+                    src: "/sceptix.webp",
+                    alt: "Sceptix",
+                    url: "https://www.sceptix.in/",
+                  },
+                ].map((logo) => (
+                  <a
+                    key={logo.id}
+                    href={logo.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center"
+                  >
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center group transition-transform hover:scale-105">
+                      <img
+                        src={logo.src}
+                        alt={logo.alt}
+                        className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]"
+                      />
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* About this Startup */}
+          <div className="mt-12 mb-4 relative">
+            <div className="bg-white/[0.03] backdrop-blur-xl rounded-2xl border border-white/20 p-6 relative shadow-lg">
+              <div className="flex items-center gap-4 justify-center mb-5">
+                <div className="h-[1px] w-10 bg-gradient-to-r from-transparent to-white/30" />
+                <span className="text-[10px] uppercase tracking-[0.2em] font-semibold text-white/50">About this Startup</span>
+                <div className="h-[1px] w-10 bg-gradient-to-l from-transparent to-white/30" />
+              </div>
+              <p className="text-white/70 text-[13px] sm:text-sm leading-relaxed text-center">
+                {stallData.description || "Innovating sustainable hardware for the next digital era."}
+              </p>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
