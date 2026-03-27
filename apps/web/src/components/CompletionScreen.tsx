@@ -7,7 +7,11 @@ interface CompletionScreenProps {
   onViewLeaderboard: () => void;
 }
 
-export default function CompletionScreen({ }: CompletionScreenProps) {
+export default function CompletionScreen({ 
+  onClose, 
+  onGoToProfile, 
+  onViewLeaderboard 
+}: CompletionScreenProps) {
   return (
     <div
       className="fixed inset-0 overflow-hidden bg-[#070014]"
@@ -86,6 +90,31 @@ export default function CompletionScreen({ }: CompletionScreenProps) {
               Thank you for participating!
             </p>
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md shrink-0">
+            <button
+              onClick={onGoToProfile}
+              className="px-6 py-3 bg-gradient-to-r from-[#8B5CF6] to-[#6D28D9] rounded-xl font-bold text-white hover:opacity-90 transition-opacity flex-1"
+            >
+              Go to Profile
+            </button>
+            <button
+              onClick={onViewLeaderboard}
+              className="px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl font-bold text-white hover:bg-white/20 transition-colors flex-1 border border-white/20"
+            >
+              View Leaderboard
+            </button>
+          </div>
+
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-white/60 hover:text-white transition-colors text-2xl"
+            aria-label="Close"
+          >
+            ✕
+          </button>
 
           {/* Branding Block - Re-enlarged but strictly positioned */}
           <div className="flex flex-col items-center gap-6 relative z-10 w-full shrink-0">
