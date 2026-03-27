@@ -35,7 +35,7 @@ export const submitVote = async (
 
     const progressCount = countResult[0]?.count || 1
 
-    if (progressCount >= 12) {
+    if (progressCount >= 11) {
       await ormDb
         .update(users)
         .set({ completed: true })
@@ -43,7 +43,7 @@ export const submitVote = async (
     }
 
     // Update stall aggregates immediately
-    if (progressCount === 12) {
+    if (progressCount === 11) {
       // User just became qualified! All their stalls need refreshing
       const userRatings = await ormDb
         .select({ stallId: ratings.stallId })

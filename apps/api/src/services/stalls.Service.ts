@@ -47,7 +47,7 @@ export const refreshStallAggregates = async (db: D1Database, stallIds: number[])
 
   const qualifiedUserIds = new Set(
     userVoteCounts
-      .filter(u => u.count >= 12)
+      .filter(u => u.count >= 11)
       .map(u => u.userId)
   );
 
